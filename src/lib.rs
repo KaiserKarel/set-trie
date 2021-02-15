@@ -56,7 +56,7 @@ where
         }
         self.children
             .iter()
-            .filter(|(k, _)| k < key)
+            .take_while(|(k, _)| k < key)
             .any(|(_, n)| n.has_descendant(key))
     }
 
