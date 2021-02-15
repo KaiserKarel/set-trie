@@ -7,7 +7,7 @@ license = "MIT"
 repository = "https://github.com/kaiserkarel/set-trie"
 description = "A trie for fast subset and superset queries"
 categories = ["algorithms", "data structures"]
-keywords = ["set trie", "trie", "collection", "subset", "superset"]
+keywords = ["set-trie", "trie", "collection", "subset", "superset"]
 
 
 [dependencies]
