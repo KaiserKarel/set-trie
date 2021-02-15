@@ -1,0 +1,20 @@
+[package]
+name = "set-trie"
+version = "0.1.0"
+authors = ["kaiserkarel <k.l.kubat@gmail.com>"]
+edition = "2018"
+license = "MIT"
+repository = "https://github.com/rentiv/set-trie"
+description = "A trie for fast subset and superset queries"
+categories = ["algorithms", "data structures"]
+keywords = ["set trie", "trie", "collection", "subset", "superset"]
+
+[dependencies]
+
+[build-dependencies]
+skeptic = "0.13"
+
+[dev-dependencies]
+skeptic = "0.13"
+proptest = "0.10"
+proptest-derive = "0.1.0"
