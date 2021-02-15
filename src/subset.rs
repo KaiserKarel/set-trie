@@ -50,13 +50,12 @@ where
                         self.idx = 0;
                         self.current = node;
                         return self.next();
-                    } else {
-                        self.next.extend(
-                            node.between_inclusive(from, to)
-                                .iter()
-                                .map(|n| (&n.0, &n.1)),
-                        )
                     }
+                    self.next.extend(
+                        node.between_inclusive(from, to)
+                            .iter()
+                            .map(|n| (&n.0, &n.1)),
+                    )
                 }
             }
             None
