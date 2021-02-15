@@ -4,11 +4,10 @@ version = "0.1.0"
 authors = ["kaiserkarel <k.l.kubat@gmail.com>"]
 edition = "2018"
 license = "MIT"
-repository = "https://github.com/rentiv/set-trie"
+repository = "https://github.com/kaiserkarel/set-trie"
 description = "A trie for fast subset and superset queries"
 categories = ["algorithms", "data structures"]
 keywords = ["set trie", "trie", "collection", "subset", "superset"]
-
 
 
 [dependencies]
