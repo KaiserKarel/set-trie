@@ -1,6 +1,6 @@
 on: [push, pull_request]
 
-name: MSRV
+name: Tests
 
 jobs:
   check:
