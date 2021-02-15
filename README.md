@@ -1,8 +1,8 @@
 ![maintenance](https://img.shields.io/badge/maintenance-activly--developed-brightgreen.svg)
 
-![crates.io](https://img.shields.io/crates/v0.2/set-trie.svg)
+![crates.io](https://img.shields.io/crates/v/set-trie.svg)
 
-![build](https://github.com/kaiserkarel/set-trie/workflows/CI/badge.svg)
+![build](https://github.com/kaiserkarel/set-trie/workflows/Tests/badge.svg)
 
 # set-trie
 
