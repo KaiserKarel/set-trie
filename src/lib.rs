@@ -46,7 +46,7 @@ impl<K, T> Node<K, T> {
     }
 }
 
-/// Due to the recursive nature of the implementation of Drop, large SetTries cause a stack overflow
+/// Due to the recursive nature of the implementation of Drop, large `SetTries` cause a stack overflow
 /// during deallocation. Our own implementation uses an iterative algorithm to deallocate.
 impl<K, T> Drop for Node<K, T> {
     fn drop(&mut self) {
