@@ -9,7 +9,7 @@ where
     IK: Iterator<Item = K> + 'a,
     K: Ord,
 {
-    trie: &'a mut SetTrie<K, T>,
+    node: &'a mut Node<K, T>,
     keys: IK,
 }
 
@@ -19,7 +19,14 @@ where
     K: Ord,
 {
     pub(crate) fn new(trie: &'a mut SetTrie<K, T>, keys: IK) -> Self {
-        EntryBuilder { trie, keys }
+        EntryBuilder {
+            node: &mut trie.0,
+            keys,
+        }
+    }
+
+    pub(crate) fn from_node(node: &'a mut Node<K, T>, keys: IK) -> Self {
+        EntryBuilder { node, keys }
     }
 }
 
@@ -108,7 +115,7 @@ where
 
     /// Finds the entry, and if it does not exist, creates it.
     pub fn or_create(self) -> Entry<'a, K, T> {
-        let mut node = &mut self.trie.0;
+        let mut node = self.node;
         let mut created = false;
 
         for key in self.keys {
@@ -131,7 +138,7 @@ where
     /// Finds the entry, but does not create one. This method short circuits on the first missing
     /// key.
     pub fn find(self) -> Option<ExistingEntry<'a, K, T>> {
-        let mut node = &mut self.trie.0;
+        let mut node = self.node;
 
         for key in self.keys {
             node = match node.children.binary_search_by(|(k, _)| k.cmp(&key)) {
@@ -181,5 +188,30 @@ where
     #[must_use]
     pub fn items_mut(&mut self) -> &mut Vec<T> {
         &mut self.node_mut().leaves
+    }
+
+    /// Provides a view into a child of the entry. If you are sequentially inserting longer keys,
+    /// reusing the entry is more efficient than starting from the root.
+    ///
+    /// ```rust
+    /// // Equivalent to first inserting 0..1, then 0..2 etc.
+    ///
+    /// let mut trie = set_trie::SetTrie::new();
+    /// let mut current = trie.entry(0..1).or_insert(0);
+    ///     for i in 1..5000 {
+    ///         current = {
+    ///             current.entry(i-1..i).or_insert(i)
+    ///         }
+    ///     }
+    /// ```
+    #[must_use]
+    pub fn entry<IK: IntoIterator<Item = K>>(
+        self,
+        keys: IK,
+    ) -> EntryBuilder<'a, K, T, IK::IntoIter> {
+        match self {
+            Entry::Created(e) => EntryBuilder::from_node(e.node, keys.into_iter()),
+            Entry::Existing(e) => EntryBuilder::from_node(e.node, keys.into_iter()),
+        }
     }
 }
