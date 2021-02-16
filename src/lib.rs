@@ -46,11 +46,28 @@ impl<K, T> Node<K, T> {
     }
 }
 
+/// Due to the recursive nature of the implementation of Drop, large SetTries cause a stack overflow
+/// during deallocation. Our own implementation uses an iterative algorithm to deallocate.
+impl<K, T> Drop for Node<K, T> {
+    fn drop(&mut self) {
+        let mut stack = Vec::with_capacity(self.children.len());
+        while let Some((_, child)) = self.children.pop() {
+            stack.push(child);
+            while let Some(mut current) = stack.pop() {
+                while let Some((_, child)) = current.children.pop() {
+                    stack.push(child)
+                }
+            }
+        }
+    }
+}
+
 impl<K, T> Node<K, T>
 where
     K: Ord,
 {
     fn has_descendant(&self, key: &K) -> bool {
+        println!("here");
         if self.children.binary_search_by(|(k, _)| k.cmp(key)).is_ok() {
             return true;
         }
@@ -111,7 +128,10 @@ where
 {
     /// A view into a single node in the trie; which must either be created or already exists.
     #[must_use]
-    fn entry<IK: IntoIterator<Item = K>>(&mut self, keys: IK) -> EntryBuilder<K, T, IK::IntoIter> {
+    pub fn entry<IK: IntoIterator<Item = K>>(
+        &mut self,
+        keys: IK,
+    ) -> EntryBuilder<K, T, IK::IntoIter> {
         EntryBuilder::new(self, keys.into_iter())
     }
 
@@ -226,5 +246,18 @@ mod tests {
         trie.insert(&[1, 2, 3], "a");
         trie.insert(&[1, 2, 3], "b");
         assert_eq!(trie.entry(&[1, 2, 3]).items(), Some(&vec!["a", "b"]))
+    }
+
+    /// Due to the recursive structure; the default Drop implementation actually causes a stack
+    /// overflow.
+    #[test]
+    fn test_stack_overflow() {
+        let seed = 2000000;
+        let mut trie = SetTrie::new();
+
+        let mut current = trie.entry(0..1).or_insert(0);
+        for i in 1..seed {
+            current = current.entry(i - 1..i).or_insert(i)
+        }
     }
 }

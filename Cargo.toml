@@ -18,3 +18,11 @@ skeptic = "0.13"
 skeptic = "0.13"
 proptest = "0.10"
 proptest-derive = "0.1.0"
+criterion = "0.3"
+
+[profile.bench]
+debug = true
+
+[[bench]]
+name = "subsets"
+harness = false
