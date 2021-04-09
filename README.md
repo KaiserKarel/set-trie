@@ -42,8 +42,3 @@ fn main() {
 # Features
  - Subsets and supersets are lazily evaluated, through an iterative DFS algorithm.
  - Convenient `entry` API.
-
-## TODO
-
-- [ ] Implement benchmarks (low priority, PR welcome)
-- [ ] Memorize seen keys to save 1 binary search (requires benchmarks to compare performance)
