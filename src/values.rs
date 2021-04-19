@@ -1,6 +1,7 @@
 use crate::{Node, SetTrie};
 
 /// Iterator for [`SetTrie::values`].
+#[derive(Debug, Clone)]
 pub struct Values<'a, K, T> {
     idx: usize,
     current: &'a Node<K, T>,

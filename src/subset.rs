@@ -1,6 +1,7 @@
 use crate::{Node, SetTrie};
 
 /// Iterator for [subset](SetTrie::subset) method.
+#[derive(Debug, Clone)]
 pub struct Subset<'a, 'b, K, T> {
     current: &'a Node<K, T>,
     next: Vec<(&'a K, &'a Node<K, T>)>,

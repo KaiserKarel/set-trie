@@ -1,6 +1,7 @@
 use crate::{Node, SetTrie};
 
 /// Iterator for [superset](SetTrie::superset) method.
+#[derive(Debug, Clone)]
 pub struct SuperSet<'a, 'b, K, T> {
     idx: usize,
     current: (bool, bool, &'a Node<K, T>),
