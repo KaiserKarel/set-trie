@@ -67,7 +67,6 @@ where
     K: Ord,
 {
     fn has_descendant(&self, key: &K) -> bool {
-        println!("here");
         if self.children.binary_search_by(|(k, _)| k.cmp(key)).is_ok() {
             return true;
         }
