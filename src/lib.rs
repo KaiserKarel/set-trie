@@ -1,10 +1,4 @@
-#![warn(
-    clippy::all,
-    clippy::pedantic,
-    clippy::nursery,
-    clippy::cargo,
-    missing_docs
-)]
+#![warn(clippy::all, clippy::cargo, missing_docs)]
 //! Fast subset and superset queries based on tries.
 //!
 //! ```rust
@@ -55,7 +49,7 @@ impl<K, T> Drop for Node<K, T> {
             stack.push(child);
             while let Some(mut current) = stack.pop() {
                 while let Some((_, child)) = current.children.pop() {
-                    stack.push(child)
+                    stack.push(child);
                 }
             }
         }
@@ -177,7 +171,7 @@ where
     /// assert_eq!(trie.values().collect::<Vec<_>>(), vec![&"foo", &"bar", &"baz"]);
     /// ```
     #[must_use]
-    pub fn values(&self) -> Values<K, T> {
+    pub const fn values(&self) -> Values<K, T> {
         Values::new(self)
     }
 
@@ -212,7 +206,7 @@ where
 {
     fn extend<F: IntoIterator<Item = (I, T)>>(&mut self, iter: F) {
         for (k, t) in iter {
-            self.insert(k, t)
+            self.insert(k, t);
         }
     }
 }
@@ -257,6 +251,54 @@ mod tests {
         let mut current = trie.entry(0..1).or_insert(0);
         for i in 1..seed {
             current = current.entry(i - 1..i).or_insert(i)
+        }
+    }
+
+    #[test]
+    // https://github.com/KaiserKarel/set-trie/issues/6
+    fn subsets_small2() {
+        let mut v = SetTrie::new();
+        v.insert(&[1, 2], 'a');
+        {
+            let mut s = v.subsets(&[&0, &1]);
+            assert_eq!(s.next(), None);
+        }
+        {
+            let mut s = v.subsets(&[&0, &1, &2]);
+            assert_eq!(s.next(), None);
+        }
+        {
+            let mut s = v.subsets(&[&1, &2]);
+            assert_eq!(s.next(), Some(&'a'));
+        }
+        {
+            v.insert(&[0, 2], 'a');
+            let mut s = v.subsets(&[&0, &2]);
+            assert_eq!(s.next(), Some(&'a'));
+        }
+    }
+
+    #[test]
+    // https://github.com/KaiserKarel/set-trie/issues/6
+    fn supersets_small2() {
+        let mut v = SetTrie::new();
+        v.insert(&[1, 2], 'a');
+        {
+            let mut s = v.supersets(&[&0]);
+            assert_eq!(s.next(), None);
+        }
+        {
+            let mut s = v.supersets(&[]);
+            assert_eq!(s.next(), Some(&'a'));
+        }
+        {
+            let mut s = v.supersets(&[&1]);
+            assert_eq!(s.next(), Some(&'a'));
+        }
+        {
+            v.insert(&[0, 2], 'a');
+            let mut s = v.supersets(&[&1, &2]);
+            assert_eq!(s.next(), Some(&'a'));
         }
     }
 }

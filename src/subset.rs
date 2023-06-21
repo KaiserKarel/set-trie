@@ -3,7 +3,9 @@ use crate::{Node, SetTrie};
 /// Iterator for [subset](SetTrie::subset) method.
 #[derive(Debug, Clone)]
 pub struct Subset<'a, 'b, K, T> {
-    current: &'a Node<K, T>,
+    current: Option<&'a Node<K, T>>,
+
+    /// Buffer of next nodes to visit.
     next: Vec<(&'a K, &'a Node<K, T>)>,
     idx: usize,
     keys: &'b [K],
@@ -13,9 +15,33 @@ impl<'a, 'b, K, T> Subset<'a, 'b, K, T>
 where
     K: Ord,
 {
+    #[must_use]
     pub(crate) fn new(trie: &'a SetTrie<K, T>, keys: &'b [K]) -> Self {
+        // There might be a cleaner way to accomplish this. Right now we're doing
+        // computation in the subset iterator, which means it's not fully lazy.
+        let current = match keys.len() {
+            // Empty keys has it's own leaves as childeren as items.
+            0 => Some(&trie.0),
+            _ => {
+                if let Some(first) = keys.first() {
+                    if trie
+                        .0
+                        .children
+                        .binary_search_by(|(child, _)| child.cmp(first))
+                        .is_ok()
+                    {
+                        Some(&trie.0)
+                    } else {
+                        None
+                    }
+                } else {
+                    Some(&trie.0)
+                }
+            }
+        };
+
         Subset {
-            current: &trie.0,
+            current,
             next: vec![],
             idx: 0,
             keys,
@@ -30,15 +56,18 @@ where
     type Item = &'a T;
 
     fn next(&mut self) -> Option<Self::Item> {
-        if self.idx < self.current.leaves.len() {
+        self.current?;
+
+        if self.idx < self.current.unwrap().leaves.len() {
             self.idx += 1;
-            Some(&self.current.leaves[self.idx - 1])
+            Some(&self.current.unwrap().leaves[self.idx - 1])
         } else {
             if let (Some(from), Some(to)) = (self.keys.first(), self.keys.last()) {
                 self.next.extend(
                     self.current
+                        .unwrap()
                         // technically, between inclusive is only necessary on the first iteration,
-                        // where we check handle the root node. Every subsequent iter may use up-to,
+                        // where we handle the root node. Every subsequent iter may use up-to,
                         // which saves a single binary search. For long key lengths this may matter.
                         .between_inclusive(from, to)
                         .iter()
@@ -49,14 +78,14 @@ where
                 while let Some((k, node)) = self.next.pop() {
                     if self.keys.binary_search(k).is_ok() {
                         self.idx = 0;
-                        self.current = node;
+                        self.current = Some(node);
                         return self.next();
                     }
                     self.next.extend(
                         node.between_inclusive(from, to)
                             .iter()
                             .map(|n| (&n.0, &n.1)),
-                    )
+                    );
                 }
             }
             None
@@ -64,7 +93,8 @@ where
     }
 
     fn size_hint(&self) -> (usize, Option<usize>) {
-        (self.current.leaves.len() - self.idx, None)
+        self.current
+            .map_or((0, None), |current| (current.leaves.len() - self.idx, None))
     }
 }
 
@@ -94,11 +124,11 @@ mod tests {
         // A set is its own subset.
         assert_eq!(v.subsets(&[]).collect::<Vec<_>>(), vec![&'f']);
 
-        // Quite a specific match should work.
+        // // Quite a specific match should work.
         assert_eq!(v.subsets(&[&5]).collect::<Vec<_>>(), vec![&'f', &'i']);
 
-        // Non-existing key should match nothing
-        assert_eq!(v.subsets(&[&6]).collect::<Vec<_>>(), vec![&'f']);
+        // // Non-existing key should match nothing
+        assert_eq!(v.subsets(&[&6]).collect::<Vec<&char>>().len(), 0);
     }
 
     mod proptest {
